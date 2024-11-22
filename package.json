@@ -1,0 +1,66 @@
+{
+  "name": "nodejs-eslint-prettier-husky",
+  "version": "1.0.4",
+  "description": "ESLint-Prettier-Husky Configuration Template for Node.js Projects",
+  "main": "main.ts",
+  "scripts": {
+    "commit-msg": "commitlint -e",
+    "commit": "git add . && git-cz",
+    "lint": "eslint \"apps/**/*.ts\" \"libs/**/*.ts\" \"tests/**/*.ts\"",
+    "lint:staged": "lint-staged",
+    "lint:fix": "eslint --fix \"apps/**/*.ts\" \"libs/**/*.ts\" \"tests/**/*.ts\"",
+    "pre-commit": "npm run lint:staged && npm run test:unit",
+    "test:e2e": "echo \"Error: no test specified\"",
+    "test:integration": "echo \"Error: no test specified\"",
+    "test:unit": "echo \"Error: no test specified\"",
+    "prepare": "husky",
+    "release:major": "standard-version --release-as major && git push --follow-tags",
+    "release:minor": "standard-version --release-as minor && git push --follow-tags",
+    "release:patch": "standard-version --release-as patch && git push --follow-tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neverovski/nodejs-eslint-prettier-husky.git"
+  },
+  "author": "Dmitry Neverovski <dmitryneverovski@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/neverovski/nodejs-eslint-prettier-husky/issues",
+    "email": "dmitryneverovski@gmail.com"
+  },
+  "homepage": "https://github.com/neverovski/nodejs-eslint-prettier-husky#readme",
+  "engines": {
+    "node": "^20",
+    "npm": "^10"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.3.0",
+    "@commitlint/config-conventional": "^19.2.2",
+    "@commitlint/cz-commitlint": "^19.2.0",
+    "@types/node": "^20.14.10",
+    "commitizen": "^4.3.0",
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb-typescript": "^17.1.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-typescript-sort-keys": "^3.2.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.7",
+    "prettier": "^3.3.3",
+    "standard-version": "^9.5.0",
+    "ts-node": "^10.9.2",
+    "tsc-watch": "^6.2.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.5.3"
+  },
+  "config": {
+    "commitizen": {
+      "path": "@commitlint/cz-commitlint"
+    }
+  },
+  "lint-staged": {
+    "*.ts": "eslint --cache \"src/**/*.ts\" \"tests/**/*.ts\""
+  }
+}
