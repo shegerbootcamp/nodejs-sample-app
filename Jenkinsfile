@@ -1,13 +1,14 @@
 pipeline {
-  agent {
-    docker {
-      image 'node:alpine'
-      reuseNode true
-    }
-  }
+  agent any
 
   stages {
     stage('Install Dependencies') {
+      agent {
+        docker {
+          image 'node:alpine'
+          args '-u root'
+        }
+      }
       steps {
         echo 'Installing dependencies...'
         sh 'rm -rf node_modules package-lock.json && npm install'
@@ -15,6 +16,12 @@ pipeline {
     }
 
     stage('Build') {
+      agent {
+        docker {
+          image 'node:alpine'
+          args '-u root'
+        }
+      }
       steps {
         echo 'Building the project...'
         sh 'npm run build'
@@ -22,6 +29,12 @@ pipeline {
     }
 
     stage('Static Analysis') {
+      agent {
+        docker {
+          image 'node:alpine'
+          args '-u root'
+        }
+      }
       steps {
         echo 'Running static analysis...'
         sh './node_modules/eslint/bin/eslint.js -f checkstyle src > eslint.xml'
