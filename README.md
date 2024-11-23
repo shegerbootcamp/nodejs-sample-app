@@ -9,7 +9,7 @@ The project also includes instructions on how to make git pre-commit hooks execu
 ## Requirements
 
 - Node.js >= 20
-- npm >= 10
+- npm >= 11
 
 ## Installation
 
