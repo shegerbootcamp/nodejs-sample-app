@@ -24,7 +24,7 @@ pipeline {
       }
       steps {
         echo 'Building the project...'
-        sh 'npm run build'
+        sh 'npm run lint'
       }
     }
 
