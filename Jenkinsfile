@@ -5,7 +5,7 @@ pipeline {
     stage('Install Dependencies') {
       agent {
         docker {
-          image 'node:alpine'
+          image 'node:22-alpine'
           args '-u root'
         }
       }
