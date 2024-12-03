@@ -3,6 +3,13 @@ pipeline {
 
   stages {
     stage('Git Clone') {
+      agent {
+        docker {
+          image 'node:22-alpine'
+          args '-u root'
+          reuseNode true
+        }
+      }
       steps {
         script {
           checkoutCode()
@@ -13,6 +20,13 @@ pipeline {
     stage('Static Code Analysis') {
       parallel {
         stage('ESLint Test') {
+          agent {
+            docker {
+              image 'node:22-alpine'
+              args '-u root'
+              reuseNode true
+            }
+          }
           when {
             expression { env.BRANCH_NAME != 'master' }
           }
@@ -22,8 +36,15 @@ pipeline {
             }
           }
         }
-        
+
         stage('SonarQube Test') {
+          agent {
+            docker {
+              image 'node:22-alpine'
+              args '-u root'
+              reuseNode true
+            }
+          }
           when {
             expression { env.BRANCH_NAME == 'master' }
           }
@@ -37,6 +58,13 @@ pipeline {
     }
 
     stage('Build') {
+      agent {
+        docker {
+          image 'node:22-alpine'
+          args '-u root'
+          reuseNode true
+        }
+      }
       steps {
         script {
           buildApp()
@@ -45,6 +73,13 @@ pipeline {
     }
 
     stage('Home Page Test') {
+      agent {
+        docker {
+          image 'node:22-alpine'
+          args '-u root'
+          reuseNode true
+        }
+      }
       steps {
         script {
           testHomePage('http://localhost:8443')
@@ -53,6 +88,13 @@ pipeline {
     }
 
     stage('Build Docker Image') {
+      agent {
+        docker {
+          image 'node:22-alpine'
+          args '-u root'
+          reuseNode true
+        }
+      }
       steps {
         script {
           buildDockerImage('my-app')
@@ -61,6 +103,13 @@ pipeline {
     }
 
     stage('Push Docker Image') {
+      agent {
+        docker {
+          image 'node:22-alpine'
+          args '-u root'
+          reuseNode true
+        }
+      }
       steps {
         script {
           pushDockerImage('my-app')
@@ -106,6 +155,12 @@ def buildApp() {
 }
 
 def testHomePage(url) {
+  echo "Waiting for the app to start at '${url}'..."
+  retry(3) {
+    sleep 5
+    sh "curl -f ${url} || exit 1"
+  }
+
   echo "Testing the home page at '${url}'..."
   // Check if the home page is accessible and contains expected content
   sh """
