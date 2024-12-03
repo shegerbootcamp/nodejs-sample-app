@@ -2,47 +2,68 @@ pipeline {
   agent any
 
   stages {
-    stage('Install Dependencies') {
-      agent {
-        docker {
-          image 'node:22-alpine'
-          args '-u root'
+    stage('Git Clone') {
+      steps {
+        script {
+          checkoutCode()
         }
       }
-      steps {
-        echo 'Installing dependencies...'
-        sh 'rm -rf node_modules package-lock.json && npm install'
+    }
+
+    stage('Static Code Analysis') {
+      parallel {
+        stage('ESLint Test') {
+          when {
+            expression { env.BRANCH_NAME != 'master' }
+          }
+          steps {
+            script {
+              runESLint()
+            }
+          }
+        }
+        
+        stage('SonarQube Test') {
+          when {
+            expression { env.BRANCH_NAME == 'master' }
+          }
+          steps {
+            script {
+              runSonarQube()
+            }
+          }
+        }
       }
     }
 
     stage('Build') {
-      agent {
-        docker {
-          image 'node:alpine'
-          args '-u root'
-        }
-      }
       steps {
-        echo 'Building the project...'
-        sh 'npm run lint'
+        script {
+          buildApp()
+        }
       }
     }
 
-    stage('Static Analysis') {
-      agent {
-        docker {
-          image 'node:alpine'
-          args '-u root'
+    stage('Home Page Test') {
+      steps {
+        script {
+          testHomePage('http://localhost:8443')
         }
       }
+    }
+
+    stage('Build Docker Image') {
       steps {
-        echo 'Running static analysis...'
-        sh './node_modules/eslint/bin/eslint.js -f checkstyle src > eslint.xml'
+        script {
+          buildDockerImage('my-app')
+        }
       }
-      post {
-        always {
-          // Use the Warnings Next Generation Plugin to record issues from eslint.xml
-          recordIssues enabledForFailure: true, aggregatingResults: true, tools: [checkStyle(pattern: 'eslint.xml')]
+    }
+
+    stage('Push Docker Image') {
+      steps {
+        script {
+          pushDockerImage('my-app')
         }
       }
     }
@@ -53,5 +74,64 @@ pipeline {
       echo 'Cleaning up workspace...'
       cleanWs()
     }
+    success {
+      echo 'Pipeline completed successfully!'
+    }
+    failure {
+      echo 'Pipeline failed. Check the logs for details.'
+    }
   }
+}
+
+def checkoutCode() {
+  echo 'Cloning repository...'
+  checkout scm
+}
+
+def runESLint() {
+  echo 'Running ESLint for non-master branches...'
+  sh 'npm run lint'
+}
+
+def runSonarQube() {
+  echo 'Running SonarQube analysis for master branch...'
+  // Assuming you have SonarQube configured in Jenkins
+  sh 'npm install -g sonarqube-scanner'
+  sh 'sonar-scanner'
+}
+
+def buildApp() {
+  echo 'Building the app...'
+  sh 'npm run build'
+}
+
+def testHomePage(url) {
+  echo "Testing the home page at '${url}'..."
+  // Check if the home page is accessible and contains expected content
+  sh """
+  STATUS=\$(curl -s -o /dev/null -w "%{http_code}" ${url})
+  if [ "\$STATUS" -ne 200 ]; then
+    echo "Home page test failed: HTTP \$STATUS"
+    exit 1
+  fi
+
+  # Optionally, you can also check for specific content on the home page
+  CONTENT=\$(curl -s ${url})
+  if [[ "\$CONTENT" == *"Welcome to the homepage!"* ]]; then
+    echo "Home page test passed!"
+  else
+    echo "Home page test failed: Content not found."
+    exit 1
+  fi
+  """
+}
+
+def buildDockerImage(imageName) {
+  echo "Building Docker image '${imageName}'..."
+  sh "docker build -t ${imageName} ."
+}
+
+def pushDockerImage(imageName) {
+  echo "Pushing Docker image '${imageName}' to registry..."
+  sh "docker push ${imageName}"
 }

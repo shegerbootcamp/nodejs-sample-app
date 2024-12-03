@@ -1,17 +1,22 @@
-FROM node:10-alpine
+# Use Node.js 22 on Alpine
+FROM node:22-alpine
+LABEL maintainer="jm <github@timbrust.de>"
 
-RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+# Argument for refreshing Docker image
+ARG REFRESHED_AT
+ENV REFRESHED_AT $REFRESHED_AT
 
-WORKDIR /home/node/app
+# Update packages and install necessary dependencies
+RUN apk -U upgrade \
+    && apk add --no-cache \
+    git \
+    openssh
 
-COPY package*.json ./
+# Set the working directory
+WORKDIR /code
 
-USER node
+# Install ESLint globally
+RUN npm install -g eslint
 
-RUN npm install
-
-COPY --chown=node:node . .
-
-EXPOSE 8080
-
-CMD [ "node", "app.js" ]
+# Expose the working directory for Jenkins
+VOLUME /code
