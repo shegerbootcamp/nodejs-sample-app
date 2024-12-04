@@ -73,13 +73,6 @@ pipeline {
     }
 
     stage('Home Page Test') {
-      agent {
-        docker {
-          image 'node:22-alpine'
-          args '-u root'
-          reuseNode true
-        }
-      }
       steps {
         script {
           testHomePage('http://localhost:8443')
@@ -162,20 +155,14 @@ def testHomePage(url) {
   }
 
   echo "Testing the home page at '${url}'..."
-  // Check if the home page is accessible and contains expected content
+  // Test the page content for a specific title
   sh """
-  STATUS=\$(curl -s -o /dev/null -w "%{http_code}" ${url})
-  if [ "\$STATUS" -ne 200 ]; then
-    echo "Home page test failed: HTTP \$STATUS"
-    exit 1
-  fi
-
-  # Optionally, you can also check for specific content on the home page
   CONTENT=\$(curl -s ${url})
-  if [[ "\$CONTENT" == *"Welcome to the homepage!"* ]]; then
-    echo "Home page test passed!"
+  TITLE=\$(echo "\$CONTENT" | grep -oP '(?<=<title>).*?(?=</title>)')
+  if [ "\$TITLE" == "Titan" ]; then
+    echo "Home page title test passed: \$TITLE"
   else
-    echo "Home page test failed: Content not found."
+    echo "Home page title test failed. Expected: 'Titan', Got: \$TITLE"
     exit 1
   fi
   """
